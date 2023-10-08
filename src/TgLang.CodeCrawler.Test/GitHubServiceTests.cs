@@ -76,5 +76,25 @@ namespace TgLang.CodeCrawler.Test
 
             Assert.Equal("cs", language?.Extension);
         }
+
+        [Fact]
+        public async Task SearchFilesAsync_MustWork()
+        {
+            var testHost = Host.CreateDefaultBuilder()
+                               .ConfigureServices((_, services) =>
+                                   {
+                                       services.AddSharedServices();
+                                   }
+                               ).Build();
+
+            var gitHubService = testHost.Services.GetRequiredService<IGitHubService>();
+
+            var languageDefService = testHost.Services.GetRequiredService<ILanguageDefService>();
+            var csLang = languageDefService.GetLanguageDefs().First(l => l.Extension == "cs");
+
+            var files = await gitHubService.SearchFilesAsync(csLang, 1, 50);
+
+            Assert.Equal(50, files.Count);
+        }
     }
 }

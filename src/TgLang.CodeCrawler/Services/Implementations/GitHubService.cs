@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TgLang.CodeCrawler.Models;
 using TgLang.CodeCrawler.Services.Contracts;
+using Range = Octokit.Range;
 
 namespace TgLang.CodeCrawler.Services.Implementations
 {
@@ -98,5 +99,34 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
             return (org, repo);
         }
+
+        public async Task<List<GitHubFile>> SearchFilesAsync(LanguageDef language, int pageNo, int pageSize)
+        {
+            var result = await GitHubClient.Search.SearchCode(new SearchCodeRequest()
+            {
+                //Language = language.GitHubLanguage,
+                Extensions = new[] { language.Extension },
+                Size = Range.GreaterThan(2000),
+                Page = pageNo,
+                PerPage = pageSize
+            });
+
+            var files =
+                from item in result.Items
+                select new GitHubFile()
+                {
+                    Path = item.Path,
+                    Sha = item.Sha,
+                    Url = item.Url,
+                    RepoId = item.Repository.Id,
+                    Name = item.Name,
+                };
+
+            return files.ToList();
+
+
+        }
     }
+
+    
 }

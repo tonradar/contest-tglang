@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Octokit;
 using TgLang.CodeCrawler.Models;
 using TgLang.CodeCrawler.Services.Contracts;
 
@@ -31,10 +32,13 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
         private List<LanguageDef> LanguageDefs { get; set; } = new List<LanguageDef>()
         {
-            new("C#", "cs", "csharp"),
-            new("JavaScript", "js"),
-            new("TypeScript", "ts"),
-            new("HTML", "html"),
+            new("C#", "cs", "csharp", Language.CSharp),
+            new("JavaScript", "js", "javascript", Language.JavaScript),
+            new("TypeScript", "ts", "typescript", Language.TypeScript),
+            new("XML", "xml", "xml", Language.Xml),
+            new("CSS", "css", "css", Language.Css),
+            new("Markdown", "md", "markdown", Language.Markdown),
+            new("YAML", "yml", "yaml", Language.Yaml),
         };
     }
 }

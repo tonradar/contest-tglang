@@ -8,7 +8,7 @@ using TgLang.CodeCrawler.Services.Contracts;
 
 
 var codeFolder = @"C:\TgCode";
-
+var requiredSamples = 10;
 
 Console.WriteLine("TgCodeCrawler started.");
 
@@ -19,45 +19,15 @@ var host = Host.CreateDefaultBuilder()
                        }
                    ).Build();
 
-var gitHubService = host.Services.GetRequiredService<IGitHubService>();
-var languageDefService = host.Services.GetRequiredService<ILanguageDefService>();
+var codeCrawler = host.Services.GetRequiredService<ICodeCrawlerService>();
 
-var languages = languageDefService.GetLanguageDefs();
+//await codeCrawler.CrawlUsingReposAsync(codeFolder);
 
-var validLanguages =
-    from language in languages
-    where language.GitHubTag is not null
-    select language;
+await codeCrawler.CrawlUsingSearchAsync(codeFolder, requiredSamples);
 
-foreach (var language in validLanguages)
-{
-    
 
-    var repos = await gitHubService.GetLanguageRepoUrlsAsync(language);
 
-    foreach (var repo in repos.Take(3))
-    {
-        var files = await gitHubService.GetCodeFilesAsync(repo);
 
-        foreach (var file in files)
-        {
-            var fileLanguage = languageDefService.GetLanguageOfUrl(file.Url);
-
-            if (fileLanguage is null)
-                continue;
-
-            var languageFolder = Path.Combine(codeFolder, fileLanguage.Extension);
-            if (!Path.Exists(languageFolder))
-            {
-                Directory.CreateDirectory(languageFolder);
-            }
-
-            var content = await gitHubService.GetCodeFileContentAsync(file.RepoId, file.Sha);
-            var filePath = Path.Combine(languageFolder, file.Url.Replace("/", "_"));
-            await File.WriteAllTextAsync(filePath, content);
-        }
-    }
-}
 
 
 

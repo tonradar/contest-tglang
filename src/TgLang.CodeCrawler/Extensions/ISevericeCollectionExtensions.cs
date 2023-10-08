@@ -17,21 +17,19 @@ public static class IServiceCollectionExtensions
     {
         services.AddTransient<IGitHubService, GitHubService>();
         services.AddTransient<ILanguageDefService, LanguageDefService>();
-        //services.AddAppHook<ServerBadgeSystemAppHook>();
-        //services.AddTransient<ILearnerService, ServerLearnerService>();
-        // ToDo: Complete.
+        services.AddTransient<ICodeCrawlerService, CodeCrawlerService>();
         services.AddHttpClient();
         services.AddTransient(CreateGitHubClient);
     }
 
     private static GitHubClient CreateGitHubClient(IServiceProvider serviceProvider)
     {
-        var productHeaderValue = new ProductHeaderValue("CS-System");
-        var gitHubToken = "ghp_" + "5MttcI7TZ8cijBPklSxwUE5zKgOjKo1bnaTr";
+        var productHeaderValue = new ProductHeaderValue("TgCode");
+        var gitHubToken = "PUT YOUR TOKEN HERE";
         var tokenAuth = new Credentials(gitHubToken);
         var client = new GitHubClient(productHeaderValue)
         {
-            //Credentials = tokenAuth
+            Credentials = tokenAuth
         };
         return client;
     }

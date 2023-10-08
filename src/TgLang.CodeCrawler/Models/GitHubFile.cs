@@ -13,5 +13,6 @@ namespace TgLang.CodeCrawler.Models
         public string Url { get; set; }
         public string Path { get; set; }
         public int Size { get; set; }
+        public string Name { get; set; }
     }
 }
