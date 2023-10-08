@@ -25,7 +25,7 @@ namespace TgLang.CodeCrawler.Models
         }
 
 
-        public LanguageDef(string name, string extension, Language? gitHubLanguage = null)
+        public LanguageDef(string name, string? extension, Language? gitHubLanguage = null)
         {
             Name = name;
             Extension = extension;
