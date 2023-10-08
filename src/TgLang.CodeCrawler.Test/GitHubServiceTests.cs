@@ -25,5 +25,56 @@ namespace TgLang.CodeCrawler.Test
 
             Assert.True(repos.Any());
         }
+
+        [Fact]
+        public async Task GetCodeFilesAsync_MustWork()
+        {
+            var testHost = Host.CreateDefaultBuilder()
+                               .ConfigureServices((_, services) =>
+                                   {
+                                       services.AddSharedServices();
+                                   }
+                               ).Build();
+
+            var gitHubService = testHost.Services.GetRequiredService<IGitHubService>();
+
+            var files = await gitHubService.GetCodeFilesAsync("https://github.com/tonradar/tonrich/tree/main/src");
+
+            Assert.True(files.Any());
+        }
+
+        [Fact]
+        public async Task GetCodeFileContentAsync_MustWork()
+        {
+            var testHost = Host.CreateDefaultBuilder()
+                               .ConfigureServices((_, services) =>
+                                   {
+                                       services.AddSharedServices();
+                                   }
+                               ).Build();
+
+            var gitHubService = testHost.Services.GetRequiredService<IGitHubService>();
+
+            var content = await gitHubService.GetCodeFileContentAsync(652218002, "19058653180fa058af1ccf42c2ada0aad7b23144");
+
+            Assert.False(string.IsNullOrWhiteSpace(content));
+        }
+
+        [Fact]
+        public async Task GetLanguageOfUrl_MustWork()
+        {
+            var testHost = Host.CreateDefaultBuilder()
+                               .ConfigureServices((_, services) =>
+                                   {
+                                       services.AddSharedServices();
+                                   }
+                               ).Build();
+
+            var languageDefService = testHost.Services.GetRequiredService<ILanguageDefService>();
+
+            var language = languageDefService.GetLanguageOfUrl("https://github.com/tonradar/contest-tglang/blob/main/src/TgLang.CodeCrawler/Services/Contracts/IGitHubService.cs");
+
+            Assert.Equal("cs", language?.Extension);
+        }
     }
 }

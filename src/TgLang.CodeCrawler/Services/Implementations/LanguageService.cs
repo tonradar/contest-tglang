@@ -15,6 +15,20 @@ namespace TgLang.CodeCrawler.Services.Implementations
             return LanguageDefs;
         }
 
+        public LanguageDef? GetLanguageOfUrl(string url)
+        {
+            var parts = url.Split('/');
+            if (parts.Any() && parts.Last().Contains("."))
+            {
+                var fileParts = parts.Last().Split('.');
+                var extension = fileParts.Last();
+
+                return LanguageDefs.FirstOrDefault(l => l.Extension == extension);
+            }
+
+            return null;
+        }
+
         private List<LanguageDef> LanguageDefs { get; set; } = new List<LanguageDef>()
         {
             new("C#", "cs", "csharp"),
