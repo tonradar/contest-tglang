@@ -96,6 +96,12 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
                         var files = await GitHubService.SearchFilesAsync(language, pageCount++, 100);
 
+                        if (files.Count == 0)
+                        {
+                            Console.WriteLine($"[{language.Name}]: NOT ENOUGH FILES!!!");
+                            break;
+                        }
+
                         foreach (var file in files)
                         {
                             if (loadedSamples >= neededSamples)
