@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TgLang.CodeCrawler.Exceptions;
 using TgLang.CodeCrawler.Models;
 using TgLang.CodeCrawler.Services.Contracts;
 using Range = Octokit.Range;
@@ -102,14 +103,35 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
         public async Task<List<GitHubFile>> SearchFilesAsync(LanguageDef language, int pageNo, int pageSize)
         {
-            var result = await GitHubClient.Search.SearchCode(new SearchCodeRequest()
+            SearchCodeRequest searchRequest;
+            if (language.GitHubLanguage is not null)
             {
-                //Language = language.GitHubLanguage,
-                Extensions = new[] { language.Extension },
-                Size = Range.GreaterThan(2000),
-                Page = pageNo,
-                PerPage = pageSize
-            });
+                searchRequest = new SearchCodeRequest()
+                {
+                    Language = language.GitHubLanguage,
+                    //Extensions = new[] { language.Extension },
+                    Size = Range.GreaterThan(2000),
+                    Page = pageNo,
+                    PerPage = pageSize
+                };
+            }
+            else if (!string.IsNullOrWhiteSpace(language.Extension))
+            {
+                searchRequest = new SearchCodeRequest()
+                {
+                    //Language = language.GitHubLanguage,
+                    Extensions = new[] { language.Extension },
+                    Size = Range.GreaterThan(2000),
+                    Page = pageNo,
+                    PerPage = pageSize
+                };
+            }
+            else
+            {
+                throw new UnsupportedLanguageException();
+            }
+
+            var result = await GitHubClient.Search.SearchCode(searchRequest);
 
             var files =
                 from item in result.Items
@@ -127,6 +149,4 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
         }
     }
-
-    
 }

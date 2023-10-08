@@ -8,7 +8,7 @@ using TgLang.CodeCrawler.Services.Contracts;
 
 
 var codeFolder = @"C:\TgCode";
-var requiredSamples = 10;
+var requiredSamples = 5;
 
 Console.WriteLine("TgCodeCrawler started.");
 

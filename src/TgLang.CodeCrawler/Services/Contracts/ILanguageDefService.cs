@@ -5,5 +5,5 @@ namespace TgLang.CodeCrawler.Services.Contracts;
 public interface ILanguageDefService
 {
     List<LanguageDef> GetLanguageDefs();
-    LanguageDef? GetLanguageOfUrl(string url);
+    (LanguageDef? language, string? extension) GetLanguageOfUrl(string url);
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TgLang.CodeCrawler.Exceptions;
 using TgLang.CodeCrawler.Models;
 using TgLang.CodeCrawler.Services.Contracts;
 
@@ -40,13 +41,13 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
                     foreach (var file in files)
                     {
-                        var fileLanguage = LanguageDefService.GetLanguageOfUrl(file.Path);
+                        var (fileLanguage, extension) = LanguageDefService.GetLanguageOfUrl(file.Path);
 
                         if (fileLanguage is null)
                             continue;
 
-                        var languageFolder = Path.Combine(codeFolder, fileLanguage.Extension);
-                        var filePath = Path.Combine(languageFolder, file.RepoId + "_" + file.Sha + "." + fileLanguage.Extension);
+                        var languageFolder = Path.Combine(codeFolder, language.Name);
+                        var filePath = Path.Combine(languageFolder, file.RepoId + "_" + file.Sha + "." + extension);
 
                         if (File.Exists(filePath))
                             continue;
@@ -77,7 +78,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
                 var currentSamples = GetCurrentSamplesCount(codeFolder, language);
                 var neededSamples = sampleCount - currentSamples;
 
-                Console.WriteLine($"[{language.Extension}]: [Current:{currentSamples}] [Needed:{neededSamples}]");
+                Console.WriteLine($"[{language.Name}]: [Current:{currentSamples}] [Needed:{neededSamples}]");
 
                 var loadedSamples = 0;
 
@@ -86,41 +87,48 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
                 var pageCount = 1;
 
-                while (true)
+                try
                 {
-                    if (loadedSamples >= neededSamples)
-                        break;
-
-                    var files = await GitHubService.SearchFilesAsync(language, pageCount++, 100);
-
-                    foreach (var file in files)
+                    while (true)
                     {
                         if (loadedSamples >= neededSamples)
                             break;
 
-                        var fileLanguage = LanguageDefService.GetLanguageOfUrl(file.Path);
+                        var files = await GitHubService.SearchFilesAsync(language, pageCount++, 100);
 
-                        if (fileLanguage is null)
-                            continue;
-
-                        var languageFolder = Path.Combine(codeFolder, fileLanguage.Extension);
-                        var filePath = Path.Combine(languageFolder, file.RepoId + "_" + file.Sha + "." + fileLanguage.Extension);
-
-                        if (File.Exists(filePath))
-                            continue;
-
-                        if (!Path.Exists(languageFolder))
+                        foreach (var file in files)
                         {
-                            Directory.CreateDirectory(languageFolder);
+                            if (loadedSamples >= neededSamples)
+                                break;
+
+                            var (fileLanguage, extension) = LanguageDefService.GetLanguageOfUrl(file.Path);
+
+                            if (extension is null)
+                                continue;
+
+                            var languageFolder = Path.Combine(codeFolder, language.Name);
+                            var filePath = Path.Combine(languageFolder,
+                                file.RepoId + "_" + file.Sha + "." + extension);
+
+                            if (File.Exists(filePath))
+                                continue;
+
+                            if (!Path.Exists(languageFolder))
+                            {
+                                Directory.CreateDirectory(languageFolder);
+                            }
+
+                            var content = await GitHubService.GetCodeFileContentAsync(file.RepoId, file.Sha);
+                            await File.WriteAllTextAsync(filePath, content);
+                            loadedSamples++;
                         }
-
-                        var content = await GitHubService.GetCodeFileContentAsync(file.RepoId, file.Sha);
-                        await File.WriteAllTextAsync(filePath, content);
-                        loadedSamples++;
                     }
+                    Console.WriteLine($"[{language.Name}]: DONE");
                 }
-
-                Console.WriteLine($"[{language.Extension}]: DONE");
+                catch (UnsupportedLanguageException)
+                {
+                    Console.WriteLine($"[{language.Name}]: UNSUPPORTED!!!");
+                }
             }
         }
 
