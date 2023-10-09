@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
     <PackageReference Include="Octokit" Version="8.0.1" />
+    <PackageReference Include="Polly" Version="8.0.0" />
     <PackageReference Include="ScrapySharp" Version="3.0.0" />
   </ItemGroup>
 

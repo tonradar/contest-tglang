@@ -7,6 +7,8 @@ using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Polly;
+using Polly.Retry;
 using TgLang.CodeCrawler.Exceptions;
 using TgLang.CodeCrawler.Models;
 using TgLang.CodeCrawler.Services.Contracts;
@@ -24,6 +26,23 @@ namespace TgLang.CodeCrawler.Services.Implementations
         {
             HttpClientFactory = httpClientFactory;
             GitHubClient = gitHubClient;
+        }
+
+        private ResiliencePipeline GetSearchPolly()
+        {
+            return new ResiliencePipelineBuilder()
+                .AddRetry(new RetryStrategyOptions()
+                {
+                    DelayGenerator = async (arguments) =>
+                    {
+                        var limit = await GitHubClient.RateLimit.GetRateLimits();
+                        var duration = (limit.Resources.Search.Reset - DateTimeOffset.Now).Add(TimeSpan.FromSeconds(1));
+                        Console.WriteLine($"[Rate Limit]: Waiting {duration.TotalSeconds} seconds.");
+                        return duration;
+                    },
+                    ShouldHandle = new PredicateBuilder().Handle<RateLimitExceededException>()
+                }) // Add retry using the default options
+                .Build(); // Builds the resilience pipeline
         }
 
         public async Task<List<string>> GetLanguageRepoUrlsAsync(LanguageDef languageDef)
@@ -145,7 +164,10 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
             try
             {
-                var result = await GitHubClient.Search.SearchCode(searchRequest);
+
+                var polly = GetSearchPolly();
+                var result = await polly.ExecuteAsync(async ct => await GitHubClient.Search.SearchCode(searchRequest));
+                //var result = await GitHubClient.Search.SearchCode(searchRequest);
 
 
                 var files =
@@ -164,11 +186,11 @@ namespace TgLang.CodeCrawler.Services.Implementations
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                var limit = await GitHubClient.RateLimit.GetRateLimits();
+                //var limit = await GitHubClient.RateLimit.GetRateLimits();
 
-                var duration = (limit.Resources.Search.Reset) - DateTimeOffset.Now;
-
-                var result = await GitHubClient.Search.SearchCode(searchRequest);
+                //var duration = (limit.Resources.Search.Reset) - DateTimeOffset.Now;
+                //await Task.Delay(duration.Add(TimeSpan.FromSeconds(1)));
+                //var result = await GitHubClient.Search.SearchCode(searchRequest);
 
                 throw;
             }

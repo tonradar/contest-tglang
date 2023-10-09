@@ -93,7 +93,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
                         if (loadedSamples >= neededSamples)
                             break;
 
-                        var files = await GitHubService.SearchFilesAsync(language, pageCount++, 100);
+                        var files = await GitHubService. SearchFilesAsync(language, pageCount++, 100);
 
                         if (files.Count == 0)
                         {
@@ -126,7 +126,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
                             var content = await GitHubService.GetCodeFileContentAsync(file.RepoId, file.Sha);
                             await File.WriteAllTextAsync(filePath, content);
                             loadedSamples++;
-                            await Task.Delay(TimeSpan.FromSeconds(1));
+                            //await Task.Delay(TimeSpan.FromSeconds(1));
                         }
                     }
                     Console.WriteLine($"[{language.Name}]: DONE");
