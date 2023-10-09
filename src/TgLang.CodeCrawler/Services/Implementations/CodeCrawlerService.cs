@@ -70,7 +70,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
             var validLanguages =
                 from language in languages
-                where language.Extension is not null
+                //where language.Extension is not null
                 select language;
 
             foreach (var language in validLanguages)
@@ -78,13 +78,12 @@ namespace TgLang.CodeCrawler.Services.Implementations
                 var currentSamples = GetCurrentSamplesCount(codeFolder, language);
                 var neededSamples = sampleCount - currentSamples;
 
-                Console.WriteLine($"[{language.Name}]: [Current:{currentSamples}] [Needed:{neededSamples}]");
-
                 var loadedSamples = 0;
-
+                
                 if (currentSamples >= sampleCount)
                     continue;
 
+                //Console.WriteLine($"[{language.Name}]: [Current:{currentSamples}] [Needed:{neededSamples}]");
                 var pageCount = 1;
 
                 try
@@ -127,6 +126,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
                             var content = await GitHubService.GetCodeFileContentAsync(file.RepoId, file.Sha);
                             await File.WriteAllTextAsync(filePath, content);
                             loadedSamples++;
+                            await Task.Delay(TimeSpan.FromSeconds(1));
                         }
                     }
                     Console.WriteLine($"[{language.Name}]: DONE");
@@ -140,7 +140,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
         public int GetCurrentSamplesCount(string codeFolder, LanguageDef language)
         {
-            var langFolder = Path.Combine(codeFolder, language.Extension);
+            var langFolder = Path.Combine(codeFolder, language.Name);
             if (!Directory.Exists(langFolder))
                 return 0;
 

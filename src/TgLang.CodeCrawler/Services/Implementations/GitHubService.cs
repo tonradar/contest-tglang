@@ -3,6 +3,7 @@ using ScrapySharp.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -104,49 +105,73 @@ namespace TgLang.CodeCrawler.Services.Implementations
         public async Task<List<GitHubFile>> SearchFilesAsync(LanguageDef language, int pageNo, int pageSize)
         {
             SearchCodeRequest searchRequest;
-            if (language.GitHubLanguage is not null)
+
+            if (
+                language.GitHubLanguage is not null 
+                ||
+                !string.IsNullOrWhiteSpace(language.Extension))
             {
                 searchRequest = new SearchCodeRequest()
                 {
                     Language = language.GitHubLanguage,
-                    //Extensions = new[] { language.Extension },
+                    Extensions = string.IsNullOrWhiteSpace(language.Extension)
+                        ? new string[] { }
+                        : new[] { language.Extension },
                     Size = Range.GreaterThan(2000),
                     Page = pageNo,
                     PerPage = pageSize
                 };
             }
-            else if (!string.IsNullOrWhiteSpace(language.Extension))
-            {
-                searchRequest = new SearchCodeRequest()
-                {
-                    //Language = language.GitHubLanguage,
-                    Extensions = new[] { language.Extension },
-                    Size = Range.GreaterThan(2000),
-                    Page = pageNo,
-                    PerPage = pageSize
-                };
-            }
+
+            //if (language.GitHubLanguage is not null)
+            //{
+                
+            //}
+            //else if (!string.IsNullOrWhiteSpace(language.Extension))
+            //{
+            //    searchRequest = new SearchCodeRequest()
+            //    {
+            //        //Language = language.GitHubLanguage,
+            //        Extensions = new[] { language.Extension },
+            //        Size = Range.GreaterThan(2000),
+            //        Page = pageNo,
+            //        PerPage = pageSize
+            //    };
+            //}
             else
             {
                 throw new UnsupportedLanguageException();
             }
 
-            var result = await GitHubClient.Search.SearchCode(searchRequest);
-
-            var files =
-                from item in result.Items
-                select new GitHubFile()
-                {
-                    Path = item.Path,
-                    Sha = item.Sha,
-                    Url = item.Url,
-                    RepoId = item.Repository.Id,
-                    Name = item.Name,
-                };
-
-            return files.ToList();
+            try
+            {
+                var result = await GitHubClient.Search.SearchCode(searchRequest);
 
 
+                var files =
+                    from item in result.Items
+                    select new GitHubFile()
+                    {
+                        Path = item.Path,
+                        Sha = item.Sha,
+                        Url = item.Url,
+                        RepoId = item.Repository.Id,
+                        Name = item.Name,
+                    };
+
+                return files.ToList();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                var limit = await GitHubClient.RateLimit.GetRateLimits();
+
+                var duration = (limit.Resources.Search.Reset) - DateTimeOffset.Now;
+
+                var result = await GitHubClient.Search.SearchCode(searchRequest);
+
+                throw;
+            }
         }
     }
 }
