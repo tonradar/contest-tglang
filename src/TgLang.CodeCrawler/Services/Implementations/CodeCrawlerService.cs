@@ -83,7 +83,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
                 if (currentSamples >= sampleCount)
                     continue;
 
-                //Console.WriteLine($"[{language.Name}]: [Current:{currentSamples}] [Needed:{neededSamples}]");
+                Console.WriteLine($"Getting {language.Name}: [Current:{currentSamples}] [Needed:{neededSamples}]");
                 var pageCount = 1;
 
                 try
