@@ -170,7 +170,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
                     break;
             }
 
-            return result.Take(sampleCount).ToList();
+            return result;
         }
 
         public async Task<List<GitHubFile>> GetFilesBySearchAsync(LanguageDef language, int pageNo, int pageSize)
