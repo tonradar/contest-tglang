@@ -14,5 +14,10 @@ namespace TgLang.CodeCrawler.Models
         public string Path { get; set; }
         public int Size { get; set; }
         public string Name { get; set; }
+
+        public override string ToString()
+        {
+            return Path;
+        }
     }
 }

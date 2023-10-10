@@ -21,11 +21,13 @@ namespace TgLang.CodeCrawler.Services.Implementations
     {
         private IHttpClientFactory HttpClientFactory { get; set; }
         public GitHubClient GitHubClient { get; set; }
+        public ILanguageDefService LanguageDefService { get; }
 
-        public GitHubService(IHttpClientFactory httpClientFactory, GitHubClient gitHubClient)
+        public GitHubService(IHttpClientFactory httpClientFactory, GitHubClient gitHubClient, ILanguageDefService languageDefService)
         {
             HttpClientFactory = httpClientFactory;
             GitHubClient = gitHubClient;
+            LanguageDefService = languageDefService;
         }
 
         private ResiliencePipeline GetSearchPolly()
@@ -37,7 +39,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
                     {
                         var limit = await GitHubClient.RateLimit.GetRateLimits();
                         var duration = (limit.Resources.Search.Reset - DateTimeOffset.Now).Add(TimeSpan.FromSeconds(1));
-                        Console.WriteLine($"[Rate Limit]: Waiting {duration.TotalSeconds} seconds.");
+                        Console.WriteLine($"[Rate Limit Search]: Waiting {duration.TotalSeconds} seconds.");
                         return duration;
                     },
                     ShouldHandle = new PredicateBuilder().Handle<RateLimitExceededException>()
@@ -45,11 +47,28 @@ namespace TgLang.CodeCrawler.Services.Implementations
                 .Build(); // Builds the resilience pipeline
         }
 
+        private ResiliencePipeline GetBlobPolly()
+        {
+            return new ResiliencePipelineBuilder()
+                   .AddRetry(new RetryStrategyOptions()
+                   {
+                       DelayGenerator = async (arguments) =>
+                       {
+                           var limit = await GitHubClient.RateLimit.GetRateLimits();
+                           var durationCore = (limit.Resources.Core.Reset - DateTimeOffset.Now).Add(TimeSpan.FromSeconds(1));
+                           Console.WriteLine($"[Rate Limit Core]: Waiting {durationCore.TotalSeconds} seconds.");
+                           return durationCore;
+                       },
+                       ShouldHandle = new PredicateBuilder().Handle<RateLimitExceededException>()
+                   }) // Add retry using the default options
+                   .Build(); // Builds the resilience pipeline
+        }
+
         public async Task<List<string>> GetLanguageRepoUrlsAsync(LanguageDef languageDef)
         {
             var client = HttpClientFactory.CreateClient();
-
-            var content = await client.GetStringAsync($"https://github.com/topics/{languageDef.GitHubTag}");
+            var tag = languageDef.GitHubTag ?? languageDef.Name;
+            var content = await client.GetStringAsync($"https://github.com/topics/{tag}");
 
             var parser = new HtmlAgilityPack.HtmlDocument();
             parser.LoadHtml(content);
@@ -59,14 +78,14 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
             var repos = repoTags
                             .Select(r => r.Attributes.FirstOrDefault(a => a.Name == "href")?.Value)
-                            .Where(r=>!string.IsNullOrWhiteSpace(r))
-                            .Select(r=>$"https://github.com{r}")
+                            .Where(r => !string.IsNullOrWhiteSpace(r))
+                            .Select(r => $"https://github.com{r}")
                             .ToList();
 
             return repos;
         }
 
-        public async Task<List<GitHubFile>> GetCodeFilesAsync(string folderUrl)
+        public async Task<List<GitHubFile>> GetFilesByUrlAsync(string folderUrl)
         {
             var (orgName, repoName) = GetRepoAndOrgNameFromUrl(folderUrl);
             var repo = await GitHubClient.Repository.Get(orgName, repoName);
@@ -88,8 +107,8 @@ namespace TgLang.CodeCrawler.Services.Implementations
                               {
                                   Path = t.Path,
                                   Size = t.Size,
-                                  RepoId = repositoryId, 
-                                  Sha = t.Sha, 
+                                  RepoId = repositoryId,
+                                  Sha = t.Sha,
                                   Url = t.Url
                               })
                               .ToList();
@@ -99,7 +118,9 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
         public async Task<string> GetCodeFileContentAsync(long repositoryId, string sha)
         {
-            var blob = await GitHubClient.Git.Blob.Get(repositoryId, sha);
+            var polly = GetBlobPolly();
+            var blob = await polly.ExecuteAsync(async ct => await GitHubClient.Git.Blob.Get(repositoryId, sha));
+
             var bytes = Convert.FromBase64String(blob.Content);
             var content = Encoding.UTF8.GetString(bytes);
             return content;
@@ -121,12 +142,43 @@ namespace TgLang.CodeCrawler.Services.Implementations
             return (org, repo);
         }
 
-        public async Task<List<GitHubFile>> SearchFilesAsync(LanguageDef language, int pageNo, int pageSize)
+        public async Task<List<GitHubFile>> GetFilesByTagAsync(LanguageDef language, int sampleCount)
+        {
+            var repos = await GetLanguageRepoUrlsAsync(language);
+            var result = new List<GitHubFile>();
+
+            if (repos.Count == 0)
+            {
+                Console.WriteLine($"{language.Name}: NO REPO FOUND FOR TAG!!!");
+            }
+
+            foreach (var repo in repos)
+            {
+                var files = await GetFilesByUrlAsync(repo);
+
+                var langFiles = (
+                    from f in files
+                    let l = LanguageDefService.GetLanguageOfUrl(f.Path)
+                    where l.language?.Name == language.Name
+                    select f
+                    ).ToList();
+
+
+                result.AddRange(langFiles);
+
+                if (result.Count >= sampleCount) 
+                    break;
+            }
+
+            return result.Take(sampleCount).ToList();
+        }
+
+        public async Task<List<GitHubFile>> GetFilesBySearchAsync(LanguageDef language, int pageNo, int pageSize)
         {
             SearchCodeRequest searchRequest;
 
             if (
-                language.GitHubLanguage is not null 
+                language.GitHubLanguage is not null
                 ||
                 !string.IsNullOrWhiteSpace(language.Extension))
             {
@@ -136,39 +188,22 @@ namespace TgLang.CodeCrawler.Services.Implementations
                     Extensions = string.IsNullOrWhiteSpace(language.Extension)
                         ? new string[] { }
                         : new[] { language.Extension },
-                    Size = Range.GreaterThan(2000),
+                    //Size = Range.GreaterThan(1000),
                     Page = pageNo,
-                    PerPage = pageSize
+                    PerPage = pageSize,
+                    SortField = CodeSearchSort.Indexed,
                 };
             }
-
-            //if (language.GitHubLanguage is not null)
-            //{
-                
-            //}
-            //else if (!string.IsNullOrWhiteSpace(language.Extension))
-            //{
-            //    searchRequest = new SearchCodeRequest()
-            //    {
-            //        //Language = language.GitHubLanguage,
-            //        Extensions = new[] { language.Extension },
-            //        Size = Range.GreaterThan(2000),
-            //        Page = pageNo,
-            //        PerPage = pageSize
-            //    };
-            //}
             else
             {
                 throw new UnsupportedLanguageException();
             }
 
+            var polly = GetSearchPolly();
+
             try
             {
-
-                var polly = GetSearchPolly();
                 var result = await polly.ExecuteAsync(async ct => await GitHubClient.Search.SearchCode(searchRequest));
-                //var result = await GitHubClient.Search.SearchCode(searchRequest);
-
 
                 var files =
                     from item in result.Items
@@ -183,16 +218,10 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
                 return files.ToList();
             }
-            catch (Exception e)
+            catch (ApiValidationException apiValidationException)
             {
-                Console.WriteLine(e);
-                //var limit = await GitHubClient.RateLimit.GetRateLimits();
-
-                //var duration = (limit.Resources.Search.Reset) - DateTimeOffset.Now;
-                //await Task.Delay(duration.Add(TimeSpan.FromSeconds(1)));
-                //var result = await GitHubClient.Search.SearchCode(searchRequest);
-
-                throw;
+                Console.WriteLine($"Error: [ApiValidationException] {apiValidationException.Message}");
+                return new List<GitHubFile>();
             }
         }
     }

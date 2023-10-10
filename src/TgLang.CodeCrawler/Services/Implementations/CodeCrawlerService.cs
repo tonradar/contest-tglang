@@ -37,7 +37,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
                 foreach (var repo in repos.Take(3))
                 {
-                    var files = await GitHubService.GetCodeFilesAsync(repo);
+                    var files = await GitHubService.GetFilesByUrlAsync(repo);
 
                     foreach (var file in files)
                     {
@@ -66,11 +66,13 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
         public async Task CrawlUsingSearchAsync(string codeFolder, int sampleCount)
         {
+            var pageSize = 100;
+            
             var languages = LanguageDefService.GetLanguageDefs();
 
             var validLanguages =
                 from language in languages
-                //where language.Extension is not null
+                where language.IsActive
                 select language;
 
             foreach (var language in validLanguages)
@@ -84,8 +86,8 @@ namespace TgLang.CodeCrawler.Services.Implementations
                     continue;
 
                 Console.WriteLine($"Getting {language.Name}: [Current:{currentSamples}] [Needed:{neededSamples}]");
-                var pageCount = 1;
-
+                var pageCount = currentSamples / pageSize;
+                var isTriedWithTags = false;
                 try
                 {
                     while (true)
@@ -93,12 +95,23 @@ namespace TgLang.CodeCrawler.Services.Implementations
                         if (loadedSamples >= neededSamples)
                             break;
 
-                        var files = await GitHubService. SearchFilesAsync(language, pageCount++, 100);
+                        if (isTriedWithTags)
+                            break;
+
+                        var files = await GitHubService.GetFilesBySearchAsync(language, pageCount++, pageSize);
 
                         if (files.Count == 0)
                         {
-                            Console.WriteLine($"[{language.Name}]: NOT ENOUGH FILES!!!");
-                            break;
+                            Console.WriteLine($"[{language.Name}]: Not enough files by search, trying TAGS!!!");
+                            files = await GitHubService.GetFilesByTagAsync(language, neededSamples);
+                            isTriedWithTags = true;
+                            if (files.Count == 0)
+                            {
+                                Console.WriteLine($"[{language.Name}]: CAN NOT PROVIDE BY SEARCH!!!");
+                                break;
+                            }
+
+                            Console.WriteLine($"[{language.Name}]: Provided with tags ({files.Count} files)");
                         }
 
                         foreach (var file in files)
@@ -129,7 +142,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
                             //await Task.Delay(TimeSpan.FromSeconds(1));
                         }
                     }
-                    Console.WriteLine($"[{language.Name}]: DONE");
+                    Console.WriteLine($"[{language.Name}]: DONE   [loaded:{loadedSamples}]     [all:{loadedSamples+currentSamples}]");
                 }
                 catch (UnsupportedLanguageException)
                 {

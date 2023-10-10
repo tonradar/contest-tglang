@@ -39,7 +39,7 @@ namespace TgLang.CodeCrawler.Test
 
             var gitHubService = testHost.Services.GetRequiredService<IGitHubService>();
 
-            var files = await gitHubService.GetCodeFilesAsync("https://github.com/tonradar/tonrich/tree/main/src");
+            var files = await gitHubService.GetFilesByUrlAsync("https://github.com/tonradar/tonrich/tree/main/src");
 
             Assert.True(files.Any());
         }
@@ -94,7 +94,7 @@ namespace TgLang.CodeCrawler.Test
             var languageDefService = testHost.Services.GetRequiredService<ILanguageDefService>();
             var csLang = languageDefService.GetLanguageDefs().First(l => l.Extension == "cs");
 
-            var files = await gitHubService.SearchFilesAsync(csLang, 1, 50);
+            var files = await gitHubService.GetFilesBySearchAsync(csLang, 1, 50);
 
             Assert.Equal(50, files.Count);
         }

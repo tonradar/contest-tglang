@@ -14,22 +14,15 @@ namespace TgLang.CodeCrawler.Models
         public string? GitHubTag { get; set; }
         public Language? GitHubLanguage { get; set; }
         public int? TelegramCode { get; set; }
-
-        public LanguageDef(string name, string extension, string? gitHubTag = null, Language? gitHubLanguage = null, int? telegramCode = null)
-        {
-            Name = name;
-            Extension = extension;
-            GitHubTag = gitHubTag;
-            GitHubLanguage = gitHubLanguage;
-            TelegramCode = telegramCode;
-        }
+        public bool IsActive = true;
 
 
-        public LanguageDef(string name, string? extension, Language? gitHubLanguage = null)
+        public LanguageDef(string name, string? extension, Language? gitHubLanguage = null, bool isActive = true)
         {
             Name = name;
             Extension = extension;
             GitHubLanguage = gitHubLanguage;
+            IsActive = isActive;
         }
 
         public override string ToString()
