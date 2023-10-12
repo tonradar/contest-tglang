@@ -47,7 +47,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
                 .Build(); // Builds the resilience pipeline
         }
 
-        private ResiliencePipeline GetBlobPolly()
+        private ResiliencePipeline GetCorePolly()
         {
             return new ResiliencePipelineBuilder()
                    .AddRetry(new RetryStrategyOptions()
@@ -88,8 +88,10 @@ namespace TgLang.CodeCrawler.Services.Implementations
         public async Task<List<GitHubFile>> GetFilesByUrlAsync(string folderUrl)
         {
             var (orgName, repoName) = GetRepoAndOrgNameFromUrl(folderUrl);
-            var repo = await GitHubClient.Repository.Get(orgName, repoName);
-            var refs = await GitHubClient.Git.Reference.GetAll(repo.Id);
+            
+            var polly = GetCorePolly();
+            var repo = await polly.ExecuteAsync(async(cts) => await GitHubClient.Repository.Get(orgName, repoName));
+            var refs = await polly.ExecuteAsync(async (cts) => await GitHubClient.Git.Reference.GetAll(repo.Id));
 
             var defaultBranch = repo.DefaultBranch;
             var root = refs.FirstOrDefault(r => r.Ref == $"refs/heads/{defaultBranch}")?.Object.Sha;
@@ -118,7 +120,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
 
         public async Task<string> GetCodeFileContentAsync(long repositoryId, string sha)
         {
-            var polly = GetBlobPolly();
+            var polly = GetCorePolly();
             var blob = await polly.ExecuteAsync(async ct => await GitHubClient.Git.Blob.Get(repositoryId, sha));
 
             var bytes = Convert.FromBase64String(blob.Content);
