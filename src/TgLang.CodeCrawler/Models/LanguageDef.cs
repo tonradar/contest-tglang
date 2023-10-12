@@ -17,8 +17,9 @@ namespace TgLang.CodeCrawler.Models
         public bool IsActive = true;
 
 
-        public LanguageDef(string name, string? extension, Language? gitHubLanguage = null, bool isActive = true)
+        public LanguageDef(int telegramCode, string name, string? extension, Language? gitHubLanguage = null, bool isActive = true)
         {
+            TelegramCode = telegramCode;
             Name = name;
             Extension = extension;
             GitHubLanguage = gitHubLanguage;
