@@ -51,7 +51,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
             new(005, "APACHE_GROOVY",   "groovy",               Language.Groovy                                     ),
             new(006, "APEX",            "cls",                  Language.Apex                                       ),
             new(007, "APPLESCRIPT",     "applescript",          Language.AppleScript                                ),
-            new(008, "ASP",             "asp",                  Language.Asp                                        ),
+            new(008, "ASP",             "aspx",                 null                                               ),
             new(009, "ASSEMBLY",        "asm",                  Language.Assembly                                   ),
             new(010, "AUTOHOTKEY",      "ahk",                  Language.AutoHotKey                                 ),
             new(011, "AWK",             "awk",                  Language.Awk                                        ),
