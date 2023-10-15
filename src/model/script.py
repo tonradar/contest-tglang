@@ -53,7 +53,7 @@ def setup_instrumentation(automl_run_id):
     return logger
 
 
-automl_run_id = 'ashy_bread_42r5bmrpb0_3'
+automl_run_id = 'silver_dress_9z60hhhj9m_0'
 logger = setup_instrumentation(automl_run_id)
 
 
@@ -182,7 +182,7 @@ def generate_data_transformation_config():
     return mapper
     
     
-def generate_preprocessor_config_0():
+def generate_preprocessor_config():
     '''
     Specifies a preprocessing step to be done after featurization in the final scikit-learn pipeline.
     
@@ -199,7 +199,15 @@ def generate_preprocessor_config_0():
     return preproc
     
     
-def generate_algorithm_config_0():
+def generate_algorithm_config():
+    '''
+    Specifies the actual algorithm and hyperparameters for training the model.
+    
+    It is the last stage of the final scikit-learn pipeline. For ensemble models, generate_preprocessor_config_N()
+    (if needed) and generate_algorithm_config_N() are defined for each learner in the ensemble model,
+    where N represents the placement of each learner in the ensemble model's list. For stack ensemble
+    models, the meta learner generate_algorithm_config_meta() is defined.
+    '''
     from lightgbm.sklearn import LGBMClassifier
     
     algorithm = LGBMClassifier(
@@ -229,87 +237,6 @@ def generate_algorithm_config_0():
     return algorithm
     
     
-def generate_preprocessor_config_1():
-    from sklearn.preprocessing import MaxAbsScaler
-    
-    preproc = MaxAbsScaler(
-        copy=True
-    )
-    
-    return preproc
-    
-    
-def generate_algorithm_config_1():
-    from xgboost.sklearn import XGBClassifier
-    
-    algorithm = XGBClassifier(
-        base_score=0.5,
-        booster='gbtree',
-        colsample_bylevel=1,
-        colsample_bynode=1,
-        colsample_bytree=1,
-        gamma=0,
-        gpu_id=-1,
-        importance_type='gain',
-        interaction_constraints='',
-        learning_rate=0.300000012,
-        max_delta_step=0,
-        max_depth=6,
-        min_child_weight=1,
-        missing=numpy.nan,
-        monotone_constraints='()',
-        n_estimators=100,
-        n_jobs=0,
-        num_parallel_tree=1,
-        objective='multi:softprob',
-        random_state=0,
-        reg_alpha=0,
-        reg_lambda=1,
-        scale_pos_weight=None,
-        subsample=1,
-        tree_method='auto',
-        use_label_encoder=True,
-        validate_parameters=1,
-        verbose=-10,
-        verbosity=0
-    )
-    
-    return algorithm
-    
-    
-def generate_algorithm_config():
-    '''
-    Specifies the actual algorithm and hyperparameters for training the model.
-    
-    It is the last stage of the final scikit-learn pipeline. For ensemble models, generate_preprocessor_config_N()
-    (if needed) and generate_algorithm_config_N() are defined for each learner in the ensemble model,
-    where N represents the placement of each learner in the ensemble model's list. For stack ensemble
-    models, the meta learner generate_algorithm_config_meta() is defined.
-    '''
-    from azureml.training.tabular.models.voting_ensemble import PreFittedSoftVotingClassifier
-    from numpy import array
-    from sklearn.pipeline import Pipeline
-    
-    pipeline_0 = Pipeline(steps=[('preproc', generate_preprocessor_config_0()), ('model', generate_algorithm_config_0())])
-    pipeline_1 = Pipeline(steps=[('preproc', generate_preprocessor_config_1()), ('model', generate_algorithm_config_1())])
-    algorithm = PreFittedSoftVotingClassifier(
-        classification_labels=numpy.array([ 2,  3,  4,  5,  6,  7,  9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20,
-                                     21, 22, 23, 24, 26, 27, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-                                     40, 41, 43, 44, 45, 46, 48, 49, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-                                     60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76,
-                                     78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 95,
-                                     96, 97, 98, 99]),
-        estimators=[
-            ('model_0', pipeline_0),
-            ('model_1', pipeline_1),
-        ],
-        flatten_transform=None,
-        weights=[0.5, 0.5]
-    )
-    
-    return algorithm
-    
-    
 def build_model_pipeline():
     '''
     Defines the scikit-learn pipeline steps.
@@ -320,7 +247,8 @@ def build_model_pipeline():
     pipeline = Pipeline(
         steps=[
             ('featurization', generate_data_transformation_config()),
-            ('ensemble', generate_algorithm_config()),
+            ('preproc', generate_preprocessor_config()),
+            ('model', generate_algorithm_config()),
         ]
     )
     
@@ -363,45 +291,45 @@ def calculate_metrics(model, X, y, sample_weights, X_test, y_test, cv_splits=Non
 def get_metrics_names():
     
     metrics_names = [
-        'classification_report',
-        'average_precision_score_micro',
-        'recall_score_binary',
-        'f1_score_micro',
-        'average_precision_score_macro',
-        'norm_macro_recall',
-        'accuracy',
-        'recall_score_micro',
-        'AUC_binary',
-        'AUC_weighted',
-        'f1_score_binary',
-        'f1_score_weighted',
-        'accuracy_table',
-        'precision_score_micro',
-        'iou_classwise',
-        'precision_score_classwise',
-        'recall_score_classwise',
-        'precision_score_binary',
-        'precision_score_weighted',
-        'AUC_macro',
-        'confusion_matrix',
-        'iou_micro',
-        'log_loss',
-        'iou_weighted',
-        'average_precision_score_weighted',
-        'balanced_accuracy',
-        'iou',
-        'weighted_accuracy',
-        'AUC_micro',
-        'AUC_classwise',
-        'precision_score_macro',
-        'recall_score_weighted',
-        'recall_score_macro',
-        'iou_macro',
-        'average_precision_score_classwise',
-        'average_precision_score_binary',
-        'f1_score_classwise',
-        'f1_score_macro',
         'matthews_correlation',
+        'average_precision_score_weighted',
+        'classification_report',
+        'recall_score_classwise',
+        'accuracy',
+        'accuracy_table',
+        'iou_classwise',
+        'weighted_accuracy',
+        'f1_score_binary',
+        'precision_score_micro',
+        'log_loss',
+        'AUC_weighted',
+        'recall_score_weighted',
+        'iou',
+        'average_precision_score_micro',
+        'norm_macro_recall',
+        'AUC_micro',
+        'AUC_macro',
+        'AUC_classwise',
+        'average_precision_score_classwise',
+        'precision_score_classwise',
+        'confusion_matrix',
+        'AUC_binary',
+        'precision_score_weighted',
+        'average_precision_score_binary',
+        'precision_score_macro',
+        'iou_macro',
+        'iou_weighted',
+        'recall_score_macro',
+        'balanced_accuracy',
+        'f1_score_classwise',
+        'recall_score_binary',
+        'average_precision_score_macro',
+        'iou_micro',
+        'f1_score_weighted',
+        'precision_score_binary',
+        'f1_score_macro',
+        'f1_score_micro',
+        'recall_score_micro',
     ]
     return metrics_names
 
@@ -409,45 +337,45 @@ def get_metrics_names():
 def get_metrics_log_methods():
     
     metrics_log_methods = {
-        'classification_report': 'Skip',
-        'average_precision_score_micro': 'log',
-        'recall_score_binary': 'log',
-        'f1_score_micro': 'log',
-        'average_precision_score_macro': 'log',
-        'norm_macro_recall': 'log',
-        'accuracy': 'log',
-        'recall_score_micro': 'log',
-        'AUC_binary': 'log',
-        'AUC_weighted': 'log',
-        'f1_score_binary': 'log',
-        'f1_score_weighted': 'log',
-        'accuracy_table': 'log_accuracy_table',
-        'precision_score_micro': 'log',
-        'iou_classwise': 'Skip',
-        'precision_score_classwise': 'Skip',
-        'recall_score_classwise': 'Skip',
-        'precision_score_binary': 'log',
-        'precision_score_weighted': 'log',
-        'AUC_macro': 'log',
-        'confusion_matrix': 'log_confusion_matrix',
-        'iou_micro': 'Skip',
-        'log_loss': 'log',
-        'iou_weighted': 'Skip',
-        'average_precision_score_weighted': 'log',
-        'balanced_accuracy': 'log',
-        'iou': 'Skip',
-        'weighted_accuracy': 'log',
-        'AUC_micro': 'log',
-        'AUC_classwise': 'Skip',
-        'precision_score_macro': 'log',
-        'recall_score_weighted': 'log',
-        'recall_score_macro': 'log',
-        'iou_macro': 'Skip',
-        'average_precision_score_classwise': 'Skip',
-        'average_precision_score_binary': 'log',
-        'f1_score_classwise': 'Skip',
-        'f1_score_macro': 'log',
         'matthews_correlation': 'log',
+        'average_precision_score_weighted': 'log',
+        'classification_report': 'Skip',
+        'recall_score_classwise': 'Skip',
+        'accuracy': 'log',
+        'accuracy_table': 'log_accuracy_table',
+        'iou_classwise': 'Skip',
+        'weighted_accuracy': 'log',
+        'f1_score_binary': 'log',
+        'precision_score_micro': 'log',
+        'log_loss': 'log',
+        'AUC_weighted': 'log',
+        'recall_score_weighted': 'log',
+        'iou': 'Skip',
+        'average_precision_score_micro': 'log',
+        'norm_macro_recall': 'log',
+        'AUC_micro': 'log',
+        'AUC_macro': 'log',
+        'AUC_classwise': 'Skip',
+        'average_precision_score_classwise': 'Skip',
+        'precision_score_classwise': 'Skip',
+        'confusion_matrix': 'log_confusion_matrix',
+        'AUC_binary': 'log',
+        'precision_score_weighted': 'log',
+        'average_precision_score_binary': 'log',
+        'precision_score_macro': 'log',
+        'iou_macro': 'Skip',
+        'iou_weighted': 'Skip',
+        'recall_score_macro': 'log',
+        'balanced_accuracy': 'log',
+        'f1_score_classwise': 'Skip',
+        'recall_score_binary': 'log',
+        'average_precision_score_macro': 'log',
+        'iou_micro': 'Skip',
+        'f1_score_weighted': 'log',
+        'precision_score_binary': 'log',
+        'f1_score_macro': 'log',
+        'f1_score_micro': 'log',
+        'recall_score_micro': 'log',
     }
     return metrics_log_methods
 
@@ -504,7 +432,7 @@ def main(training_dataset_uri=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--training_dataset_uri', type=str, default='azureml://locations/westeurope/workspaces/a1eb233e-c0bf-4eee-bf28-6228d45e5e1f/data/TgCodeSamples_1/versions/14',     help='Default training dataset uri is populated from the parent run')
+    parser.add_argument('--training_dataset_uri', type=str, default='azureml:XXXX',     help='Default training dataset uri is populated from the parent run')
     args = parser.parse_args()
     
     try:
