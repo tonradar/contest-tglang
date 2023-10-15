@@ -2,6 +2,5 @@
 
 public interface ICodeCrawlerService
 {
-    Task CrawlUsingReposAsync(string codeFolder, int sampleCount);
-    Task CrawlUsingSearchAsync(string codeFolder, int sampleCount);
+    Task CrawlAsync(string codeFolder, int sampleCount);
 }

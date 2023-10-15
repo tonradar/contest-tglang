@@ -1,14 +1,10 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TgLang.CodeCrawler.Services.Contracts;
 
 
-var codeFolder = @"C:\TgCode";
-var requiredSamples = 900;
+var codeFolder = args.ElementAtOrDefault(1) ?? @"C:\TgCode";
+var requiredSamples = int.Parse(args.ElementAtOrDefault(2) ?? "1000");
 
 Console.WriteLine("TgCodeCrawler started.");
 
@@ -20,10 +16,7 @@ var host = Host.CreateDefaultBuilder()
                    ).Build();
 
 var codeCrawler = host.Services.GetRequiredService<ICodeCrawlerService>();
-
-//await codeCrawler.CrawlUsingReposAsync(codeFolder);
-
-await codeCrawler.CrawlUsingSearchAsync(codeFolder, requiredSamples);
+await codeCrawler.CrawlAsync(codeFolder, requiredSamples);
 
 
 

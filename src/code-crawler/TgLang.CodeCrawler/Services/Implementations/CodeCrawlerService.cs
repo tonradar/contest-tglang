@@ -20,51 +20,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
             LanguageDefService = languageDefService;
         }
 
-        public async Task CrawlUsingReposAsync(string codeFolder, int sampleCount)
-        {
-            var languages = LanguageDefService.GetLanguageDefs();
-
-            var validLanguages =
-                from language in languages
-                where language.GitHubTag is not null
-                select language;
-
-            foreach (var language in validLanguages)
-            {
-
-
-                var repos = await GitHubService.GetLanguageRepoUrlsAsync(language);
-
-                foreach (var repo in repos.Take(3))
-                {
-                    var files = await GitHubService.GetFilesByUrlAsync(repo);
-
-                    foreach (var file in files)
-                    {
-                        var (fileLanguage, extension) = LanguageDefService.GetLanguageOfUrl(file.Path);
-
-                        if (fileLanguage is null)
-                            continue;
-
-                        var languageFolder = Path.Combine(codeFolder, language.Name);
-                        var filePath = Path.Combine(languageFolder, file.RepoId + "_" + file.Sha + "." + extension);
-
-                        if (File.Exists(filePath))
-                            continue;
-
-                        if (!Path.Exists(languageFolder))
-                        {
-                            Directory.CreateDirectory(languageFolder);
-                        }
-
-                        var content = await GitHubService.GetCodeFileContentAsync(file.RepoId, file.Sha);
-                        await File.WriteAllTextAsync(filePath, content);
-                    }
-                }
-            }
-        }
-
-        public async Task CrawlUsingSearchAsync(string codeFolder, int sampleCount)
+        public async Task CrawlAsync(string codeFolder, int sampleCount)
         {
             var pageSize = 100;
             
