@@ -45,8 +45,8 @@ These **confusing languages** are:
  - CSV
 
 A common pattern in these languages is that they can be used within other languages. For example, a regex pattern or a JSON value can be used in any language. To fix this issue, if the model predicts one of these confusing languages, we will double-check the result using these functions: `is_json()`, `is_csv()`, `is_regex()`. It will be returned if it is valid, otherwise, the next probable language will be returned.
- - **is_regex()**: Checks if the string can be parsed to a regex.
- - **is_csv()**: Checks if the counts of commas for each line are the same
+ - **is_regex()**: Checks if the text can be parsed to a regex.
+ - **is_csv()**: Checks if there are equal number of commas in each line.
  - **is_json()**: Checks if the text is surrounded with `{}` or `[]`.
 
 ## Final Library
