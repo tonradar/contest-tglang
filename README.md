@@ -3,9 +3,9 @@ This document explains how **TonRadar Team** developed a solution for the **ML C
 
 ## Source Code
 The source code is structured in these folders:
- - **[code-crawler](https://github.com/tonradar/contest-tglang/tree/main/src/code-crawler):** Crawling code files from GitHub (C#)
- - **model-trainer:** Training the model (Python, AzureML)
- - **final-library:** Building the final *.so* file (C)
+ - **[crawler](https://github.com/tonradar/contest-tglang/tree/main/src/crawler):** Crawling code files from GitHub (C#)
+ - **[model](https://github.com/tonradar/contest-tglang/tree/main/src/model):** Training the model (Python, AzureML)
+ - **[libtglang](https://github.com/tonradar/contest-tglang/tree/main/src/libtglang):** Building the final *.so* file (C)
 
 ## Language Selection
 We analyzed the list of languages provided by the competition and decided to exclude some of them for the following reasons:
