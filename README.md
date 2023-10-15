@@ -4,7 +4,7 @@ This document explains how **TonRadar Team** developed a solution for the **ML C
 ## Language Selection
 We analyzed the list of languages provided by the competition and decided to exclude some of them for the following reasons:
  - Some languages are not widely used or not even real languages (e.g., **1S_ENTERPRISE**, **BISON**).
- - Some languages are very similar to other languages and can confuse the model (e.g., **Delphi** and **Pascal**).
+ - Some languages are very similar to other languages and can confuse the model (e.g., **Delphi** and **Pascal**). Later in this document it is explained on the *Confusion Matrix*.
  - Some languages have very few or no source code files available on GitHub (e.g., **ICON**, **LOGO**).
 
  Here is the list of excluded languages:
@@ -23,7 +23,11 @@ We used GitHub as our main source of data for training our model. We developed a
   - **TgLang.CodeCrawler.Test**: A set of unit tests and integration tests to ensure the correctness and reliability of the crawler.
 
   ## Model Training
-We used Python and AzureML to train our model using the collected dataset. We chose a deep neural network architecture that can learn from the syntactic and semantic features of the source code. We saved our model in ONNX format so that we can use it in a C program to create the final library.
+We used Python and AzureML to train our model using the collected dataset. We chose a deep neural network architecture that can learn from the syntactic and semantic features of the source code. We saved our model in ONNX format so that we could use it in a C program to create the final library.
+
+During training, we observed that some languages caused confusion using the *Confusion Matrix*:
+![image](https://github.com/tonradar/contest-tglang/assets/5070766/637f00f6-9378-402e-9d19-b668ce7fc031)
+As you can see in this confusion matrix, some blue columns show a high possibility of confusing most languages with the language of that column.
 
 ## Final Library
 The final library is written in C and conforms to the specifications of the competition. It loads the ONNX model and uses it to predict the programming language of an input string. It returns the related enum of the predicted language as output.
