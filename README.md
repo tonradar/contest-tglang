@@ -1,4 +1,4 @@
-# TonRadar Team's Solution for Telegram ML Competition 2023
+# TonRadar Solution for Telegram ML Competition 2023
 This document explains how **TonRadar Team** developed a solution for the **ML Competition 2023** organized by Telegram. The goal of the competition is to create a library that can detect the programming language of a given source code snippet. The complete source code and documentation (including this document) are available on our GitHub repository: [github.com/tonradar/contest-tglang](^1^).
 
 ## Source Code
@@ -30,9 +30,24 @@ We used GitHub as our main source of data for training our model. We developed a
   ## Model Training
 We used Python and AzureML to train our model using the collected dataset. We chose a deep neural network architecture that can learn from the syntactic and semantic features of the source code. We saved our model in ONNX format so that we could use it in a C program to create the final library.
 
+We trained the model using AzureML and here is the result:
+![Model Metrics](https://github.com/tonradar/contest-tglang/assets/5070766/bc169a40-ab77-480c-9997-9c1e9ba0c0fd)
+
+
 During training, we observed that some languages caused confusion using the *Confusion Matrix*:
-![image](https://github.com/tonradar/contest-tglang/assets/5070766/637f00f6-9378-402e-9d19-b668ce7fc031)
-As you can see in this confusion matrix, some blue columns show a high possibility of confusing most languages with the language of that column.
+![Confusion Matrix](https://github.com/tonradar/contest-tglang/assets/5070766/eb391d21-f784-4fe9-82c2-08f411e63c0f)
+
+As you can see in this confusion matrix, some blue columns show a high possibility of confusing most languages with the language of that column. 
+
+These **confusing languages** are:
+ - JSON
+ - REGEX
+ - CSV
+ - INI
+
+A common pattern in these languages is that they can be used within other languages. For example, a regex pattern or a JSON value can be used in any language. To fix this issue, if the model predicts one of these confusing languages, we will double-check the result with a regex. It will be returned if it is valid, otherwise, the next probable language will be returned.
+
+
 
 ## Final Library
 The final library is written in C and conforms to the specifications of the competition. It loads the ONNX model and uses it to predict the programming language of an input string. It returns the related enum of the predicted language as output.
