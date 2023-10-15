@@ -2,7 +2,7 @@
 This document explains how **TonRadar Team** developed a solution for the **ML Competition 2023** organized by Telegram. The goal of the competition is to create a library that can detect the programming language of a given source code snippet. The complete source code and documentation (including this document) are available on our GitHub repository: [github.com/tonradar/contest-tglang](^1^).
 
 ## Source Code
-All the source code is structured in the `src` folder:
+The source code is structured in these folders:
  - **[code-crawler](https://github.com/tonradar/contest-tglang/tree/main/src/code-crawler):** Crawling code files from GitHub (C#)
  - **model-trainer:** Training the model (Python, AzureML)
  - **final-library:** Building the final *.so* file (C)
