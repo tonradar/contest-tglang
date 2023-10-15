@@ -45,9 +45,10 @@ These **confusing languages** are:
  - CSV
  - INI
 
-A common pattern in these languages is that they can be used within other languages. For example, a regex pattern or a JSON value can be used in any language. To fix this issue, if the model predicts one of these confusing languages, we will double-check the result with a regex. It will be returned if it is valid, otherwise, the next probable language will be returned.
-
-
+A common pattern in these languages is that they can be used within other languages. For example, a regex pattern or a JSON value can be used in any language. To fix this issue, if the model predicts one of these confusing languages, we will double-check the result using these functions: `is_json()`, `is_csv()`, `is_regex()`. It will be returned if it is valid, otherwise, the next probable language will be returned.
+ - **is_regex()**: Checks if the string can be parsed to a regex.
+ - **is_csv()**: Checks if the counts of commas for each line are the same
+ - **is_json()**: Checks if the text is surrounded with `{}` or `[]`.
 
 ## Final Library
 The final library is written in C and conforms to the specifications of the competition. It loads the ONNX model and uses it to predict the programming language of an input string. It returns the related enum of the predicted language as output.
