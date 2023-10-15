@@ -43,8 +43,8 @@ namespace TgLang.CodeCrawler.Services.Implementations
                         return duration;
                     },
                     ShouldHandle = new PredicateBuilder().Handle<RateLimitExceededException>()
-                }) // Add retry using the default options
-                .Build(); // Builds the resilience pipeline
+                })
+                .Build();
         }
 
         private ResiliencePipeline GetCorePolly()

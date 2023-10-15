@@ -11,11 +11,20 @@ namespace TgLang.CodeCrawler.Services.Implementations
 {
     public class LanguageDefService : ILanguageDefService
     {
+        /// <summary>
+        /// Gets all defined languages
+        /// </summary>
+        /// <returns></returns>
         public List<LanguageDef> GetLanguageDefs()
         {
             return LanguageDefs;
         }
 
+        /// <summary>
+        /// Extracts the file extension and according language from a GitHub file url.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
         public (LanguageDef? language, string? extension) GetLanguageOfUrl(string url)
         {
             var parts = url.Split('/');
@@ -30,19 +39,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
             return (null, null);
         }
 
-        //private List<LanguageDef> LanguageDefs { get; set; } = new List<LanguageDef>()
-        //{
-        //    new("C#", "cs", "csharp", Language.CSharp),
-        //    new("JavaScript", "js", "javascript", Language.JavaScript),
-        //    new("TypeScript", "ts", "typescript", Language.TypeScript),
-        //    new("XML", "xml", "xml", Language.Xml),
-        //    new("CSS", "css", "css", Language.Css),
-        //    new("Markdown", "md", "markdown", Language.Markdown),
-        //    new("YAML", "yml", "yaml", Language.Yaml),
-        //};
-
-
-        private List<LanguageDef> LanguageDefs { get; set; } = new List<LanguageDef>()
+        private List<LanguageDef> LanguageDefs { get; } = new()
         {
             new(001, "1S_ENTERPRISE",   null,                   null                                                ),
             new(002, "ABAP",            "abap",                 Language.Abap                                       ),
@@ -51,7 +48,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
             new(005, "APACHE_GROOVY",   "groovy",               Language.Groovy                                     ),
             new(006, "APEX",            "cls",                  Language.Apex                                       ),
             new(007, "APPLESCRIPT",     "applescript",          Language.AppleScript                                ),
-            new(008, "ASP",             "aspx",                 null                                               ),
+            new(008, "ASP",             "aspx",                 null                                                ),
             new(009, "ASSEMBLY",        "asm",                  Language.Assembly                                   ),
             new(010, "AUTOHOTKEY",      "ahk",                  Language.AutoHotKey                                 ),
             new(011, "AWK",             "awk",                  Language.Awk                                        ),

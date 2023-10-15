@@ -20,6 +20,12 @@ namespace TgLang.CodeCrawler.Services.Implementations
             LanguageDefService = languageDefService;
         }
 
+        /// <summary>
+        /// Crawl required number of samples for each language in the <param name="codeFolder"></param>
+        /// </summary>
+        /// <param name="codeFolder"></param>
+        /// <param name="sampleCount"></param>
+        /// <returns></returns>
         public async Task CrawlAsync(string codeFolder, int sampleCount)
         {
             var pageSize = 100;
@@ -107,7 +113,7 @@ namespace TgLang.CodeCrawler.Services.Implementations
             }
         }
 
-        public int GetCurrentSamplesCount(string codeFolder, LanguageDef language)
+        private int GetCurrentSamplesCount(string codeFolder, LanguageDef language)
         {
             var langFolder = Path.Combine(codeFolder, language.Name);
             if (!Directory.Exists(langFolder))
