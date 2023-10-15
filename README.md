@@ -10,17 +10,16 @@ The source code is structured in these folders:
 ## Language Selection
 We analyzed the list of languages provided by the competition and decided to exclude some of them for the following reasons:
  - Some languages are not widely used or not even real languages (e.g., **1S_ENTERPRISE**, **BISON**).
- - Some languages are very similar to other languages and can confuse the model (e.g., **Delphi** and **Pascal**). Later in this document it is explained on the *Confusion Matrix*.
- - Some languages have very few or no source code files available on GitHub (e.g., **ICON**, **LOGO**).
+ - Some languages are very similar to other languages and can confuse the model (e.g., **Delphi~Pascal** and **VISUAL_BASIC~VBSCRIPT**).
+ - Some languages have very few or no source code files available on GitHub (e.g., **HACK**).
 
  Here is the list of excluded languages:
  - 1S_ENTERPRISE
  - BISON
- - DELPHI
- - FORTH
- - ICON
- - LOGO
- 
+ - HACK
+ - DELPHI (will map to PASCAL)
+ - VBSCRIPT (will map to VISUAL_BASIC)
+  
 We also chose to use `.aspx` files instead of `.asp` files for the `ASP` language, as `.aspx` is the newer and more popular framework.
 
  ## Data Collection
