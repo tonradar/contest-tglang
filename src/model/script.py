@@ -418,7 +418,7 @@ def main(training_dataset_uri=None):
             getattr(run, metrics_log_methods[metric])(metric, metrics[metric])
     cd = inference.get_conda_deps_as_dict(True)
     
-    # Saving Machine Learning pkl model to outputs/.
+    # Saving ML model to outputs/.
     signature = mlflow.models.signature.infer_signature(X, y)
     mlflow.sklearn.log_model(
         sk_model=model,
