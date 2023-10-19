@@ -4,8 +4,8 @@ project(tglang VERSION 1.0.0 LANGUAGES C)
 
 add_library(tglang SHARED tglang.c)
 
-set(ONNXRUNTIME_LIB_PATH "/home/afshin/Desktop/tglang/libtglang/onnxruntime-linux-x64-1.16.1/lib")
-set(ONNXRUNTIME_INCLUDE_PATH "/home/afshin/Desktop/tglang/libtglang/onnxruntime-linux-x64-1.16.1/include")
+set(ONNXRUNTIME_LIB_PATH "/home/afshin/Desktop/lib/libtglang-full/libtglang/resources/onnxruntime-linux-x64-1.16.1/lib")
+set(ONNXRUNTIME_INCLUDE_PATH "/home/afshin/Desktop/lib/libtglang-full/libtglang/resources/onnxruntime-linux-x64-1.16.1/include")
 
 include_directories("${ONNXRUNTIME_INCLUDE_PATH}")
 
